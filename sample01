@@ -1,0 +1,35 @@
+# coding: UTF-8
+import re
+from gensim.models.doc2vec import Doc2Vec
+from gensim.models.doc2vec import TaggedDocument
+import numpy as np
+
+f=open('hoseisho1.txt')
+data1=f.read()
+f.close()
+sen1 = re.findall(r'[^。]+(?:[。]|$)',data1)
+
+f=open('hoseisho2.txt')
+data2=f.read()
+f.close()
+sen2 = re.findall(r'[^。]+(?:[。]|$)',data2)
+
+sen3=sen1+sen2
+
+from pyknp.juman.juman import Juman
+
+juman=Juman()
+
+for i in range(0,5):
+    result={}
+    result[i]=[mrph.midasi for mrph in juman.analysis(sen3[i]).mrph_list()]
+    training_docs = []
+    sent={}
+    sent[i]= TaggedDocument(words=result[i],tags=[i])
+    training_docs.append(sent[i])
+
+model = Doc2Vec(documents=training_docs, min_count=1, dm=0)
+
+def cos_sim(v1,v2):
+    return np.dot(v1,v2)/(np.linalg.norm(v1)*np.linalg.norm(v2))
+print(cos_sim(model.docvecs[1],model.docvecs[2]))
